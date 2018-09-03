@@ -94,43 +94,30 @@ export class Canvas {
     })
   }
   arc(x, y, r, a0, a1, ccw) {
-    x = +x, y = +y, r = +r;
-    var dx = r * Math.cos(a0),
-      dy = r * Math.sin(a0),
-      x0 = x + dx,
-      y0 = y + dy,
-      cw = 1 ^ ccw,
-      da = ccw ? a0 - a1 : a1 - a0;
+    this.ellipse(x, y, r, r, 0, a0, a1, ccw)
+  }
+  ellipse(x, y, rx, ry, rot, a0, a1, ccw) {
+    const r = (rx + ry) / 2
+    const a = Math.abs(a1 - a0)
+    const inc = (a / tau) / a / Math.sqrt(r / 100)
+    const n = Math.ceil(a / inc)
+    const cw = ccw ? -1 : 1
 
-    // Is the radius negative? Error.
-    if (r < 0) throw new Error("negative radius: " + r);
+    if (rx < 0) throw new Error(`negative x radius: ${rx}`);
+    if (ry < 0) throw new Error(`negative y radius: ${ry}`);
 
-    // Is this path empty? Move to (x0,y0).
-    if (this._x1 === null) {
-      this.moveTo(x0, y0)
-    }
+    for (var c = 0; c <= n; c++) {
+      let i = c === n ? a1 : a0 + c * inc * cw
 
-    // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
-    else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
-      this.lineTo(x0, y0)
-    }
+      let xPos = x - (rx * Math.sin(i)) * Math.sin(rot * Math.PI) + (ry * Math.cos(i)) * Math.cos(rot * Math.PI);
+      let yPos = y + (ry * Math.cos(i)) * Math.sin(rot * Math.PI) + (rx * Math.sin(i)) * Math.cos(rot * Math.PI);
 
-    // Is this arc empty? We’re done.
-    if (!r) return;
-
-    // Does the angle go the wrong way? Flip the direction.
-    if (da < 0) da = da % tau + tau;
-
-    if (da > epsilon) {
-      if (cw) {
-        da = -da
+      // Is this path empty? Move to (x0,y0).
+      if (!i && this._x1 === null) {
+        this.moveTo(xPos, yPos)
       }
 
-      arcLines(x, y, r, a0, a1, ccw, this.arcScale)
-        .forEach(d => this.lineTo(d[0], d[1]))
-
-      this._x1 = x + r * Math.cos(a1)
-      this._y1 = y + r * Math.sin(a1)
+      this.lineTo(xPos, yPos)
     }
   }
   rect(x, y, w, h) {
@@ -146,18 +133,3 @@ export class Canvas {
   }
 }
 
-// TODO ccw
-// TODO adaptive points
-function arcLines(x, y, r, a0, a1, ccw, arcScale) {
-  const numPoints = r * arcScale
-  const a = (a1 - a0) / numPoints
-  const out = []
-
-  for (let i = 0; i <= numPoints; i++) {
-    out.push([
-      x + (Math.cos(a * i) * r),
-      y + (Math.sin(a * i) * r)
-    ])
-  }
-  return out
-}
