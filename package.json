@@ -25,6 +25,6 @@
   },
   "devDependencies": {
     "adaptive-bezier-curve": "^1.0.3",
-    "transformation-matrix": "^1.13.0"
+    "transformation-matrix": "^1.14.0"
   }
 }

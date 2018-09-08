@@ -5,7 +5,6 @@ const pi = Math.PI,
   tau = 2 * pi,
   epsilon = 1e-6,
   tauEpsilon = tau - epsilon,
-  radDeg = 180 / Math.PI,
   defaultBezierScale = 2,
   defaultArcScale = 2;
 
@@ -49,34 +48,35 @@ export class Canvas {
   }
 
   moveTo(x, y) {
-    ({ x, y } = applyToPoint(this._matrix, { x, y }));
+    [x, y] = applyToPoint(this._matrix, [x, y]);
     this._x0 = this._x1 = +x
     this._y0 = this._y1 = +y
     this.ctx.forEach(c => c.moveTo(x, y))
   }
   lineTo(x, y) {
-    ({ x, y } = applyToPoint(this._matrix, { x, y }));
+    [x, y] = applyToPoint(this._matrix, [x, y]);
     this._x1 = +x
     this._y1 = +y
     this.ctx.forEach(c => c.lineTo(x, y))
   }
   closePath() {
     if (this._x1 !== null) {
-      this.lineTo(this._x1 = this._x0, this._y1 = this._y0)
+      const start = applyToPoint(inverse(this._matrix), [this._x0, this._y0]);
+      this.lineTo(start[0], start[1])
     }
   }
   quadraticCurveTo(x1, y1, x, y) {
-    const start = applyToPoint(inverse(this._matrix), { x: this._x0, y: this._y0 });
-    const point = applyToPoint(this._matrix, { x, y });
+    const start = applyToPoint(inverse(this._matrix), [this._x0, this._y0]);
+    const point = applyToPoint(this._matrix, [x, y]);
     const points = bezier(
-      [start.x, start.y],
+      start,
       [x1, y1],
       [x1, y1],
       [+x, +y],
       +this._bezierScale
     )
-    this._x0 = this._x1 = point.x
-    this._y0 = this._y1 = point.y
+    this._x0 = this._x1 = point[0]
+    this._y0 = this._y1 = point[1]
     points.forEach(p => {
       this.lineTo(p[0], p[1])
     })
@@ -97,11 +97,22 @@ export class Canvas {
     this.ellipse(x, y, r, r, 0, a0, a1, ccw)
   }
   ellipse(x, y, rx, ry, rot, a0, a1, ccw) {
-    const r = (rx + ry) / 2
-    const a = Math.abs(a1 - a0)
-    const inc = (a / tau) / a / Math.sqrt(r / 100)
+    if (a0 < 0) a0 = (a0 + tau) % tau
+    if (a1 < 0) a1 = (a1 + tau) % tau
+
+    const maxR = Math.max(rx, ry)
+
+    let a = ccw ? a0 - a1 : a1 - a0
+    if (a < 0) a = (a + tau) % tau
+    // const inc = (a / tau) / a / Math.sqrt(r / 50)
+    // const inc = (1 / tau) / this._arcScale / Math.sqrt(r)
+    // const inc = Math.sqrt(2 * maxR * this._arcScale - (Math.pow(this._arcScale, 2)))
+    // const inc = 1 / Math.sqrt(2 * maxR * this._arcScale - (Math.pow(this._arcScale, 2)))
+    const inc = 1 / Math.sqrt(maxR * this._arcScale - (Math.pow(this._arcScale, 2)))
     const n = Math.ceil(a / inc)
     const cw = ccw ? -1 : 1
+
+    console.log('_arcScale', this._arcScale, 'n', n, ' inc', inc)
 
     if (rx < 0) throw new Error(`negative x radius: ${rx}`);
     if (ry < 0) throw new Error(`negative y radius: ${ry}`);
@@ -109,15 +120,22 @@ export class Canvas {
     for (var c = 0; c <= n; c++) {
       let i = c === n ? a1 : a0 + c * inc * cw
 
-      let xPos = x - (rx * Math.sin(i)) * Math.sin(rot * Math.PI) + (ry * Math.cos(i)) * Math.cos(rot * Math.PI);
-      let yPos = y + (ry * Math.cos(i)) * Math.sin(rot * Math.PI) + (rx * Math.sin(i)) * Math.cos(rot * Math.PI);
+      let x0 = x - (ry * Math.sin(i)) * Math.sin(rot * Math.PI) + (rx * Math.cos(i)) * Math.cos(rot * Math.PI);
+      let y0 = y + (rx * Math.cos(i)) * Math.sin(rot * Math.PI) + (ry * Math.sin(i)) * Math.cos(rot * Math.PI);
 
       // Is this path empty? Move to (x0,y0).
-      if (!i && this._x1 === null) {
-        this.moveTo(xPos, yPos)
+      if (!c) {
+        if (this._x1 === null) {
+          this.moveTo(x0, y0)
+        }
+        // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
+        else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+          this.lineTo(x0, y0)
+          continue
+        }
       }
 
-      this.lineTo(xPos, yPos)
+      this.lineTo(x0, y0)
     }
   }
   rect(x, y, w, h) {
