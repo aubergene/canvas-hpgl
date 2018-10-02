@@ -96,6 +96,77 @@ export class Canvas {
   arc(x, y, r, a0, a1, ccw) {
     this.ellipse(x, y, r, r, 0, a0, a1, ccw)
   }
+  arcTo(x1, y1, x2, y2, r) {
+    x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
+    var x0 = this._x1,
+      y0 = this._y1,
+      x21 = x2 - x1,
+      y21 = y2 - y1,
+      x01 = x0 - x1,
+      y01 = y0 - y1,
+      l01_2 = x01 * x01 + y01 * y01;
+
+    // Is the radius negative? Error.
+    if (r < 0) throw new Error("negative radius: " + r);
+
+    // Is this path empty? Move to (x1,y1).
+    if (this._x1 === null) {
+      this.moveTo(x1, y1)
+    }
+
+    // Or, is (x1,y1) coincident with (x0,y0)? Do nothing.
+    else if (!(l01_2 > epsilon));
+
+    // Or, are (x0,y0), (x1,y1) and (x2,y2) collinear?
+    // Equivalently, is (x1,y1) coincident with (x2,y2)?
+    // Or, is the radius zero? Line to (x1,y1).
+    else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
+      // this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
+      this.lineTo(x1, y1)
+    }
+
+    // Otherwise, draw an arc!
+    else {
+      var x20 = x2 - x0,
+        y20 = y2 - y0,
+        l21_2 = x21 * x21 + y21 * y21,
+        l20_2 = x20 * x20 + y20 * y20,
+        l21 = Math.sqrt(l21_2),
+        l01 = Math.sqrt(l01_2),
+        l = r * Math.tan((pi - Math.acos((l21_2 + l01_2 - l20_2) / (2 * l21 * l01))) / 2),
+        t01 = l / l01,
+        t21 = l / l21;
+
+      // If the start tangent is not coincident with (x0,y0), line to.
+      if (Math.abs(t01 - 1) > epsilon) {
+        // this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
+        this.lineTo(x1 + t01 * x01, y1 + t01 * y01)
+      }
+
+      const x3 = (x1 + t21 * x21)
+      const y3 = (y1 + t21 * y21)
+
+      const h = Math.hypot(x3 - this._x1, y3 - this._y1)
+      const a = Math.asin(h / 2 / r) * 2
+
+      const x4 = (this._x1 + x3) / 2
+      const y4 = (this._y1 + y3) / 2
+
+      const basex = Math.sqrt((r * r) - (Math.pow(h / 2, 2))) * (y3 - this._y1) / h
+      const basey = Math.sqrt((r * r) - (Math.pow(h / 2, 2))) * (this._x1 - x3) / h
+
+      // this.lineTo(x4 - basex, y4 - basey)
+      // this.lineTo(x1 + t21 * x21, y1 + t21 * y21)
+      // this.arc(x4 - basex, y4 - basey, r, 0, -a)
+      this.arc(x4 - basex, y4 - basey, r, 0, -a)
+      // this._.push([
+      //   "AA ", Math.round(x4 + basex), ",", Math.round(y4 + basey), ",", (-a * radDeg).toFixed(2), arcDeg
+      // ]);
+
+      // this._ += "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
+      console.log('draw an arc', "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21))
+    }
+  }
   ellipse(x, y, rx, ry, rot, a0, a1, ccw) {
     if (a0 < 0) a0 = (a0 + tau) % tau
     if (a1 < 0) a1 = (a1 + tau) % tau
