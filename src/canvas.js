@@ -155,16 +155,8 @@ export class Canvas {
       const basex = Math.sqrt((r * r) - (Math.pow(h / 2, 2))) * (y3 - this._y1) / h
       const basey = Math.sqrt((r * r) - (Math.pow(h / 2, 2))) * (this._x1 - x3) / h
 
-      // this.lineTo(x4 - basex, y4 - basey)
-      // this.lineTo(x1 + t21 * x21, y1 + t21 * y21)
-      // this.arc(x4 - basex, y4 - basey, r, 0, -a)
-      this.arc(x4 - basex, y4 - basey, r, 0, -a)
-      // this._.push([
-      //   "AA ", Math.round(x4 + basex), ",", Math.round(y4 + basey), ",", (-a * radDeg).toFixed(2), arcDeg
-      // ]);
-
-      // this._ += "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21);
-      console.log('draw an arc', "A" + r + "," + r + ",0,0," + (+(y01 * x20 > x01 * y20)) + "," + (this._x1 = x1 + t21 * x21) + "," + (this._y1 = y1 + t21 * y21))
+      const startAngle = Math.atan2(this._y1 - y4 + basey, this._x1 - x4 + basex)
+      this.arc(x4 - basex, y4 - basey, r, startAngle, startAngle + a)
     }
   }
   ellipse(x, y, rx, ry, rot, a0, a1, ccw) {
@@ -175,15 +167,9 @@ export class Canvas {
 
     let a = ccw ? a0 - a1 : a1 - a0
     if (a < 0) a = (a + tau) % tau
-    // const inc = (a / tau) / a / Math.sqrt(r / 50)
-    // const inc = (1 / tau) / this._arcScale / Math.sqrt(r)
-    // const inc = Math.sqrt(2 * maxR * this._arcScale - (Math.pow(this._arcScale, 2)))
-    // const inc = 1 / Math.sqrt(2 * maxR * this._arcScale - (Math.pow(this._arcScale, 2)))
     const inc = 1 / Math.sqrt(maxR * this._arcScale - (Math.pow(this._arcScale, 2)))
     const n = Math.ceil(a / inc)
     const cw = ccw ? -1 : 1
-
-    console.log('_arcScale', this._arcScale, 'n', n, ' inc', inc)
 
     if (rx < 0) throw new Error(`negative x radius: ${rx}`);
     if (ry < 0) throw new Error(`negative y radius: ${ry}`);
