@@ -98,9 +98,11 @@ export class Canvas {
   }
   arcTo(x1, y1, x2, y2, r) {
     x1 = +x1, y1 = +y1, x2 = +x2, y2 = +y2, r = +r;
-    var x0 = this._x1,
-      y0 = this._y1,
-      x21 = x2 - x1,
+    // var x0 = this._x1,
+    //   y0 = this._y1
+    var [x0, y0] = applyToPoint(inverse(this._matrix), [this._x1, this._y1]);
+
+    var x21 = x2 - x1,
       y21 = y2 - y1,
       x01 = x0 - x1,
       y01 = y0 - y1,
@@ -122,7 +124,8 @@ export class Canvas {
     // Or, is the radius zero? Line to (x1,y1).
     else if (!(Math.abs(y01 * x21 - y21 * x01) > epsilon) || !r) {
       // this._ += "L" + (this._x1 = x1) + "," + (this._y1 = y1);
-      this.lineTo(x1, y1)
+      this.lineTo(x1, y1);
+      [x0, y0] = applyToPoint(inverse(this._matrix), [this._x1, this._y1]);
     }
 
     // Otherwise, draw an arc!
@@ -140,26 +143,29 @@ export class Canvas {
       // If the start tangent is not coincident with (x0,y0), line to.
       if (Math.abs(t01 - 1) > epsilon) {
         // this._ += "L" + (x1 + t01 * x01) + "," + (y1 + t01 * y01);
-        this.lineTo(x1 + t01 * x01, y1 + t01 * y01)
+        this.lineTo(x1 + t01 * x01, y1 + t01 * y01);
+        [x0, y0] = applyToPoint(inverse(this._matrix), [this._x1, this._y1]);
       }
 
       const x3 = (x1 + t21 * x21)
       const y3 = (y1 + t21 * y21)
 
-      const h = Math.hypot(x3 - this._x1, y3 - this._y1)
+      const h = Math.hypot(x3 - x0, y3 - y0)
       const a = Math.asin(h / 2 / r) * 2
 
-      const x4 = (this._x1 + x3) / 2
-      const y4 = (this._y1 + y3) / 2
+      const x4 = (x0 + x3) / 2
+      const y4 = (y0 + y3) / 2
 
-      const basex = Math.sqrt((r * r) - (Math.pow(h / 2, 2))) * (y3 - this._y1) / h
-      const basey = Math.sqrt((r * r) - (Math.pow(h / 2, 2))) * (this._x1 - x3) / h
+      const basex = Math.sqrt((r * r) - (Math.pow(h / 2, 2))) * (y3 - y0) / h
+      const basey = Math.sqrt((r * r) - (Math.pow(h / 2, 2))) * (x0 - x3) / h
 
-      const startAngle = Math.atan2(this._y1 - y4 + basey, this._x1 - x4 + basex)
+      const startAngle = Math.atan2(y0 - y4 + basey, x0 - x4 + basex)
       this.arc(x4 - basex, y4 - basey, r, startAngle, startAngle + a)
     }
   }
   ellipse(x, y, rx, ry, rot, a0, a1, ccw) {
+    const [_x1, _y1] = applyToPoint(inverse(this._matrix), [this._x1, this._y1]);
+
     if (a0 < 0) a0 = (a0 + tau) % tau
     if (a1 < 0) a1 = (a1 + tau) % tau
 
@@ -186,7 +192,7 @@ export class Canvas {
           this.moveTo(x0, y0)
         }
         // Or, is (x0,y0) not coincident with the previous point? Line to (x0,y0).
-        else if (Math.abs(this._x1 - x0) > epsilon || Math.abs(this._y1 - y0) > epsilon) {
+        else if (Math.abs(_x1 - x0) > epsilon || Math.abs(_y1 - y0) > epsilon) {
           this.lineTo(x0, y0)
           continue
         }
