@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Straight canvas browser test</title>
+  <style>
+    .wrapper {
+      display: grid;
+      grid-gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+    }
+
+    .box {
+      padding: 16px;
+    }
+
+    canvas, svg {
+      background: #fff;
+    }
+
+  </style>
+</head>
+
+<body>
+  <h1>Straight canvas browser test</h1>
+
+  <div class="wrapper">
+    <div class="box">
+      <h2>Canvas</h2>
+      <canvas id="canvas"></canvas>
+    </div>
+    <div class="box">
+      <h2>D3 path</h2>
+      <svg id="d3-path-svg"></svg>
+    </div>
+    <div class="box">
+      <h2>Straight-canvas</h2>
+      <canvas id="straight-canvas"></canvas>
+    </div>
+  </div>
+
+  <script src="../dist/index.umd.js"></script>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script>
+    const tau = Math.PI * 2
+
+    const width = 600
+    const height = 400
+    const dpr = window.devicePixelRatio || 1;
+  
+    var slc = StraightLineCanvas
+    
+    var canvas = d3.select('#canvas')
+    canvas.attr('width', width * dpr)
+    canvas.attr('height', height * dpr)
+    canvas.style('width', width + 'px')
+    canvas.style('height', height + 'px')
+    var canvasCtx = canvas.node().getContext('2d')
+    canvasCtx.scale(dpr, dpr);
+
+    var d3svg = d3.select('#d3-path-svg')
+    d3svg.attr('width', width)
+    d3svg.attr('height', height)
+    var d3pathCtx = d3.path()
+
+    var slcCanvas = d3.select('#straight-canvas')
+    slcCanvas.attr('width', width * dpr)
+    slcCanvas.attr('height', height * dpr)
+    slcCanvas.style('width', width + 'px')
+    slcCanvas.style('height', height + 'px')
+    var slcCanvasCtx = slcCanvas.node().getContext('2d')
+    slcCanvasCtx.scale(dpr, dpr);
+
+
+    var ctx = new slc.Canvas([canvasCtx, d3pathCtx, slcCanvasCtx])
+
+    ctx.rect(5, 5, 100, 10)
+    ctx.moveTo(160, 30)
+    ctx.arc(140, 30, 20, 0, tau)
+    ctx.arc(170, 30, 20, 0, tau)
+    ctx.quadraticCurveTo(5, 60, 200, 100)
+    ctx.bezierCurveTo(50, 50, 100, 20, 200, 100)
+    ctx.arcTo(5, 100, 5, 20, 30)
+    ctx.lineTo(5, 15)
+
+    ctx.translate(0, 110);
+    ctx.transform(1,0.2,0.2,0.6,0,0);
+
+    ctx.rect(5, 5, 100, 10)
+    ctx.moveTo(160, 30)
+    ctx.arc(140, 30, 20, 0, tau)
+    ctx.arc(170, 30, 20, 0, tau)
+    ctx.quadraticCurveTo(5, 60, 200, 100)
+    ctx.bezierCurveTo(50, 50, 100, 20, 200, 100)
+    ctx.arcTo(5, 100, 5, 20, 30)
+    ctx.lineTo(5, 15)
+
+
+
+    canvasCtx.stroke()
+    d3svg.append('path').attr('fill', 'none').attr('stroke', '#000').attr('d', d3pathCtx.toString())
+    slcCanvasCtx.stroke()
+
+
+  </script>
+</body>
+</html>
