@@ -34,10 +34,26 @@ describe('Hpgl', function () {
     var p = new Hpgl();
     p.moveTo(150, 50);
     assert.equal(p.toString(), "PU 150 -50;\n");
+  });
+
+  it("hpgl.moveTo(x, y) reduces multiple consecutive PU commands to the last one", function () {
+    var p = new Hpgl();
+    p.moveTo(150, 50);
+    assert.equal(p.toString(), "PU 150 -50;\n");
     p.moveTo(200, 100);
-    assert.equal(p.toString(), "PU 150 -50;\nPU 200 -100;\n");
+    assert.equal(p.toString(), "PU 200 -100;\n");
     p.moveTo(100, 50);
-    assert.equal(p.toString(), "PU 150 -50;\nPU 200 -100;\nPU 100 -50;\n");
+    assert.equal(p.toString(), "PU 100 -50;\n");
+  });
+
+  it("hpgl.moveTo(x, y) reduces multiple consecutive PD commands to same point with a single command", function () {
+    var p = new Hpgl();
+    p.lineTo(150, 50);
+    assert.equal(p.toString(), "PD 150 -50;\n");
+    p.lineTo(150, 50);
+    assert.equal(p.toString(), "PD 150 -50;\n");
+    p.lineTo(150, 50);
+    assert.equal(p.toString(), "PD 150 -50;\n");
   });
 
   it("hpgl.lineTo(x, y) appends PD commands", function () {

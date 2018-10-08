@@ -38,15 +38,33 @@ export class Hpgl {
   moveTo(x, y) {
     y *= -1;
     ({ x, y } = applyToPoint(this._matrix, { x, y }));
-    this._.push(['PU', round(this._x0 = this._x1 = +x), round(this._y0 = this._y1 = +y)]);
+    this._cmd('PU', round(this._x0 = this._x1 = +x), round(this._y0 = this._y1 = +y))
   }
   lineTo(x, y) {
     y *= -1;
     ({ x, y } = applyToPoint(this._matrix, { x, y }));
-    this._.push(['PD', round(this._x1 = +x), round(this._y1 = +y)]);
+    this._cmd('PD', round(this._x1 = +x), round(this._y1 = +y));
   }
   toString() {
     if (!this._.length) return ""
-    return this._.map(d => d.join(' ')).join(';\n') + ';\n';
+    return this._.map(d => d.join(' ')).join(';\n') + ';\n'
+  }
+
+  _cmd(cmd, ...params) {
+    params = params.join(' ')
+    if (this._.length) {
+      const prevCmd = this._[this._.length-1]
+      if (prevCmd[0] === cmd) {
+        if (prevCmd[0] === 'PU') {
+          // Replace previous move commands with the new one
+          // to remove long lists of pointless consecutive moves
+          this._.pop()
+        } else if (prevCmd[1] === params) {
+          // Don't draw to the same point more than once
+          return
+        }
+      }
+    }
+    this._.push([cmd, params])
   }
 }
