@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Straight canvas browser test</title>
+  <title>canvas-polyline browser test</title>
   <style>
     .wrapper {
       display: grid;
@@ -24,7 +24,9 @@
 </head>
 
 <body>
-  <h1>Straight canvas browser test</h1>
+  <h1>canvas-polyline browser test</h1>
+
+  <p>To facilitate seeing any difference between HTML5 Canvas, D3-Path and canvas-polyline</p>
 
   <div class="wrapper">
     <div class="box">
@@ -32,12 +34,12 @@
       <canvas id="canvas"></canvas>
     </div>
     <div class="box">
-      <h2>D3 path</h2>
+      <h2>D3-path</h2>
       <svg id="d3-path-svg"></svg>
     </div>
     <div class="box">
-      <h2>Straight-canvas</h2>
-      <canvas id="straight-canvas"></canvas>
+      <h2>canvas-polyline</h2>
+      <canvas id="canvas-polyline"></canvas>
     </div>
   </div>
 
@@ -65,7 +67,7 @@
     d3svg.attr('height', height)
     var d3pathCtx = d3.path()
 
-    var slcCanvas = d3.select('#straight-canvas')
+    var slcCanvas = d3.select('#canvas-polyline')
     slcCanvas.attr('width', width * dpr)
     slcCanvas.attr('height', height * dpr)
     slcCanvas.style('width', width + 'px')

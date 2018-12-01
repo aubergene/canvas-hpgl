@@ -1,8 +1,8 @@
 {
-  "name": "straight-canvas",
+  "name": "canvas-hpgl",
   "version": "1.0.0",
   "description": "",
-  "main": "src/index.js",
+  "main": "dist/index.umd.js",
   "module": "src/index.js",
   "directories": {
     "test": "test"
@@ -24,7 +24,7 @@
     "sinon": "^6.1.5"
   },
   "devDependencies": {
-    "adaptive-bezier-curve": "^1.0.3",
-    "transformation-matrix": "^1.14.0"
+    "canvas-polyline": "^1.1.0",
+    "transformation-matrix": "^1.14.1"
   }
 }
