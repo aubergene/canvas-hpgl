@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Page Title</title>
+  <style>
+    body {
+      background: #eee;
+    }
+
+    #canvas,
+    #svg {
+      background: #fff;
+    }
+
+    #svg {
+      display: none;
+    }
+
+    #start {
+      fill: green;
+    }
+
+    #end {
+      fill: red;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <svg id="svg">
+    <defs>
+      <marker id="dot" markerWidth="200" markerHeight="200">
+        <circle r="100" />
+      </marker>
+      <marker id="start" viewBox="-5 -5 10 10" markerUnits="strokeWidth" markerWidth="15" markerHeight="15">
+        <circle r="5" />
+      </marker>
+      <marker id="end" viewBox="-5 -5 10 10" markerUnits="strokeWidth" markerWidth="15" markerHeight="15">
+        <rect x="-5" y="-5" width="10" height="10" />
+      </marker>
+      <marker id="arrow-draw" viewBox="-10 -5 10 10" markerUnits="strokeWidth" markerWidth="15" markerHeight="15"
+        orient="auto">
+        <path class="marker" d="M 0 0 L -10 -5 A 8 8 0 0 1 -10 5 Z" />
+      </marker>
+      <marker id="arrow-move" viewBox="-10 -5 10 10" markerUnits="strokeWidth" markerWidth="15" markerHeight="15"
+        orient="auto">
+        <path class="marker" d="M 0 0 L -10 -5 A 8 8 0 0 1 -10 5 Z" />
+      </marker>
+    </defs>
+    <!-- <path marker-start="url(#start)" marker-mid="url(#arrow-draw)" marker-end="url(#end)" fill="none" stroke="#000" id="svg-out"></path> -->
+    <path fill="none" stroke="#000" id="svg-out"></path>
+  </svg>
+  <br>
+  <br>
+  <textarea id="hpgl-out" cols="30" rows="10"></textarea>
+  <div id="hpgl-out-lines"></div>
+
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://unpkg.com/canvas-polyline@1.1.0/dist/index.umd.js"></script>
+  <script src="../dist/canvas-hpgl.umd.js"></script>
+    <script>
+    const margin = 400 // 1cm
+
+    // const coords = {
+    //   top: -11880 + margin,
+    //   right: 16340 - margin,
+    //   bottom: 11880 - margin,
+    //   left: -17300 + margin
+    // }
+
+    const coords = {
+      top: 0 + margin,
+      right: 16158 - margin,
+      bottom: 11040 - margin,
+      left: 0 + margin
+    }
+
+    const plotterScale = 25
+    const tau = Math.PI * 2
+
+    const width = Math.abs(coords.right - coords.left) / plotterScale
+    const height = Math.abs(coords.bottom - coords.top) / plotterScale
+
+    console.log(width, height)
+
+    var dpr = window.devicePixelRatio || 1;
+
+    var canvas = d3.select('#canvas')
+    canvas.attr('width', width * dpr)
+    canvas.attr('height', height * dpr)
+    canvas.style('width', width + 'px')
+    canvas.style('height', height + 'px')
+    var canvasCtx = canvas.node().getContext('2d')
+    canvasCtx.scale(dpr, dpr)
+
+    var hpglOut = d3.select('#hpgl-out')
+    var hpglOutLines = d3.select('#hpgl-out-lines')
+    hpglOut.attr('value', '')
+    var hpglCtx = new CanvasHpgl()
+
+    hpglCtx.translate(coords.left, coords.bottom)
+    hpglCtx.scale(plotterScale)
+
+    var svg = d3.select('#svg')
+    svg.attr('width', width)
+    svg.attr('height', height)
+    // console.log(svg)
+    var svgOut = d3.select('#svg-out')
+    var svgCtx = d3.path()
+
+    const bezierScale = d3.select('#bezier-scale').on('input', render)
+    const arcScale = d3.select('#arc-scale').on('input', render)
+
+    render()
+
+    function render() {
+      canvasCtx.clearRect(0, 0, width, height)
+      canvasCtx.beginPath()
+      // canvasCtx.translate(width / 2, height / 2)
+
+      svgCtx = d3.path()
+      hpglCtx.beginPath()
+      var ctx = new CanvasPolyline([canvasCtx, hpglCtx, svgCtx])
+
+      ctx.resetTransform()
+
+      ctx.translate(width / 2, height / 2)
+
+      canvasCtx.save()
+      canvasCtx.rect(0, 0, 200, 100)
+      canvasCtx.fillStyle = '#c00'
+      canvasCtx.strokeStyle = '#f90'
+      canvasCtx.fill()
+      canvasCtx.rotate(tau / 6)
+      canvasCtx.scale(1.2, 1)
+
+      roundedRegularPolygon(canvasCtx, 0, 0, 3, 200, 15);
+      roundedRegularPolygon(canvasCtx, 0, 0, 6, 200, 25);
+      // roundedRegularPolygon(canvasCtx, 0, 0, 4, 200, 100);
+      // roundedRegularPolygon(canvasCtx, 0, 0, 5, 200, 40);
+      // roundedRegularPolygon(canvasCtx, 0, 0, 7, 150, 50);
+      // roundedRegularPolygon(canvasCtx, 0, 0, 8, 60, 6);
+      canvasCtx.stroke()
+      canvasCtx.beginPath()
+      canvasCtx.restore()
+
+      ctx.rotate(tau / 6)
+      ctx.scale(1, 0.8)      
+      
+      ctx.arc(0,0, 100, 0, tau)
+      roundedRegularPolygon(ctx, 0, 0, 3, 200, 15);
+      roundedRegularPolygon(ctx, 0, 0, 6, 200, 25);
+      roundedRegularPolygon(ctx, 0, 0, 4, 200, 100);
+      roundedRegularPolygon(ctx, 0, 0, 5, 200, 40);
+      roundedRegularPolygon(ctx, 0, 0, 7, 150, 50);
+      roundedRegularPolygon(ctx, 0, 0, 8, 60, 6);
+
+      canvasCtx.stroke()
+      svgOut.attr('d', svgCtx.toString())
+      var tmpOut = decorateHpgl(hpglCtx)
+      hpglOut.node().value = tmpOut
+      hpglOutLines.text(tmpOut.split('\n').length)
+    }
+
+    function roundedRegularPolygon(ctx, x, y, sides, radius, pointRadius) {
+      var flatTop = 0.5
+      for (let i = 0; i <= sides; i++) {
+        let a1 = ((i + flatTop) / sides) * tau
+        let x1 = x + Math.cos(a1) * radius
+        let y1 = y + Math.sin(a1) * radius
+        let a2 = (((i + 1 + flatTop) % sides) / sides) * tau
+        let x2 = x + Math.cos(a2) * radius
+        let y2 = y + Math.sin(a2) * radius
+        if (i) {
+          ctx.arcTo(x1, y1, x2, y2, pointRadius);
+        } else {
+          ctx.moveTo((x1 + x2) / 2, (y1 + y2) / 2)
+        }
+        if (i === sides) {
+          ctx.lineTo((x1 + x2) / 2, (y1 + y2) / 2)
+        }
+      }
+    }
+
+
+    function decorateHpgl(hpgl) {
+      return `IN;\nSP 1;\n${hpgl}PU;\nSP 0;\n`
+    }
+
+  </script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Page Title</title>
+  <style>
+    body {
+      background: #eee;
+    }
+
+    #canvas,
+    #svg {
+      background: #fff;
+    }
+
+    #canvas {
+      display: none;
+    }
+
+    #start {
+      fill: green;
+    }
+    #end {
+      fill: red;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas"></canvas>
+  <svg id="svg">
+    <defs>
+      <marker id="dot" markerWidth="200" markerHeight="200">
+        <circle r="100" />
+      </marker>
+      <marker id="start" viewBox="-5 -5 10 10" markerUnits="strokeWidth" markerWidth="15" markerHeight="15">
+        <circle r="5" />
+      </marker>
+      <marker id="end" viewBox="-5 -5 10 10" markerUnits="strokeWidth" markerWidth="15" markerHeight="15">
+        <rect x="-5" y="-5" width="10" height="10" />
+      </marker>
+      <marker id="arrow-draw" viewBox="-10 -5 10 10" markerUnits="strokeWidth" markerWidth="15" markerHeight="15" orient="auto">
+        <path class="marker" d="M 0 0 L -10 -5 A 8 8 0 0 1 -10 5 Z" />
+      </marker>
+      <marker id="arrow-move" viewBox="-10 -5 10 10" markerUnits="strokeWidth" markerWidth="15" markerHeight="15" orient="auto">
+        <path class="marker" d="M 0 0 L -10 -5 A 8 8 0 0 1 -10 5 Z" />
+      </marker>
+    </defs>
+    <!-- <path marker-start="url(#start)" marker-mid="url(#arrow-draw)" marker-end="url(#end)" fill="none" stroke="#000" id="svg-out"></path> -->
+    <path fill="none" stroke="#000" id="svg-out"></path>
+  </svg>
+  <br>
+  <label>Bezier
+    <input type="range" id="bezier-scale" name="volume" min="0" max="2" step="0.05" />
+  </label>
+  <label>Arc
+    <input type="range" id="arc-scale" name="volume" min="0.00000001" max="2" step="0.01" style="width: 800px" />
+  </label>
+  <br>
+  <textarea id="hpgl-out" cols="30" rows="10"></textarea>
+  <div id="hpgl-out-lines"></div>
+
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://unpkg.com/canvas-polyline@1.1.0/dist/index.umd.js"></script>
+  <script src="../dist/canvas-hpgl.umd.js"></script>
+  <script>
+    const margin = 400 // 1cm
+
+    
+    const coords = {
+      top: 0 + margin,
+      right: 16158 - margin,
+      bottom: 11040 - margin,
+      left: 0 + margin
+    }
+
+    const plotterScale = 20
+    const tau = Math.PI * 2
+
+    const width = Math.abs(coords.right - coords.left) / plotterScale
+    const height = Math.abs(coords.bottom - coords.top) / plotterScale
+
+    console.log(width, height)
+
+    var canvas = d3.select('#canvas')
+    canvas.attr('width', width)
+    canvas.attr('height', height)
+    var canvasCtx = canvas.node().getContext('2d')
+
+    var hpglOut = d3.select('#hpgl-out')
+    var hpglOutLines = d3.select('#hpgl-out-lines')
+    hpglOut.attr('value', '')
+    var hpglCtx = new CanvasHpgl()
+
+    hpglCtx.translate(coords.left, coords.bottom)
+    hpglCtx.scale(plotterScale)
+
+    var svg = d3.select('#svg')
+    svg.attr('width', width)
+    svg.attr('height', height)
+    // console.log(svg)
+    var svgOut = d3.select('#svg-out')
+    var svgCtx = d3.path()
+
+    const bezierScale = d3.select('#bezier-scale').on('input', render)
+    const arcScale = d3.select('#arc-scale').on('input', render)
+
+    render()
+
+    function render() {
+      // console.log('render')
+      canvasCtx.clearRect(0, 0, width, height)
+      canvasCtx.beginPath()
+      // canvasCtx.translate(width / 2, height / 2)
+
+      svgCtx = d3.path()
+      hpglCtx.beginPath()
+      var ctx = new CanvasPolyline([canvasCtx, hpglCtx, svgCtx])
+
+      ctx.resetTransform()
+      ctx.bezierScale = bezierScale.node().value
+      // console.log(bezierScale.node().value)
+      ctx.arcScale = arcScale.node().value
+
+      // svgOut.attr('transform', `translate(${width/2},${height/2})`)
+
+      // draw margins
+      // ctx.rect(0, 0, coords.right - coords.left, coords.bottom - coords.top)
+
+      ctx.translate(width / 2, height / 2)
+      // ctx.translate(-100, -100)
+      // ctx.scale(1.2, 0.8)
+
+      const pie = d3.pie().padAngle(0.03)
+
+      var data = [1, 1, 2, 3, 5, 8, 13, 21]
+      var arcs = pie(data)
+      var margin = 10
+      var innerRadius = 80
+      var outerRadius = 280
+
+      var arc = d3.arc()
+        .outerRadius(outerRadius - margin)
+        .innerRadius(innerRadius + margin)
+        .cornerRadius(20)
+        .context(ctx)
+
+      // ctx.moveTo(0, 0)
+      // ctx.arc(0, 0, 90, 2.9970021625331347, 2.51662894953723, true)
+      // ctx.arc(-89.20827911939874, 64.35746216683383, 20, -0.6249637040525632, 0.7233758731529086, false)
+
+      // arcs.forEach(arc);
+
+      // ctx.moveTo(innerRadius, 0)
+      // ctx.arc(0, 0, innerRadius, 0, Math.PI * 2)
+      // ctx.moveTo(outerRadius, 0)
+      // ctx.arc(0, 0, outerRadius, 0, Math.PI * 2)
+
+
+
+      var data = [8, 4, 7, 3, 9]
+      var arcs = pie(data)
+
+      var arc = d3.arc()
+        .outerRadius(250)
+        .innerRadius(50)
+        .context(ctx);
+
+      // arcs.forEach(arc);
+
+      // ctx.scale(1.4)
+      // ctx.translate(-80, 10)
+
+      // ctx.moveTo(20, 0)
+      // ctx.ellipse(0, 0, 20, 20, 0, 0, tau)
+      // ctx.moveTo(100, 0)
+      // ctx.ellipse(0, 0, 100, 100, 0, 0, tau)
+      // ctx.moveTo(120, 0)
+      // ctx.ellipse(0, 0, 120, 120, 0, 0, Math.PI)
+      // ctx.moveTo(-140, 0)
+      // ctx.ellipse(0, 0, 140, 140, 0, Math.PI, tau)
+      // ctx.moveTo(160, 0)
+      // ctx.ellipse(0, 0, 160, 160, 0, 0, Math.PI / 2)
+      // ctx.moveTo(180, 0)
+      // ctx.ellipse(0, 0, 180, 180, 0, 0, Math.PI, true)
+      // ctx.moveTo(-200, 0)
+      // ctx.ellipse(0, 0, 200, 200, 0, Math.PI, tau / 2, true)
+      // ctx.moveTo(380, 0)
+      // ctx.ellipse(0, 0, 380, 380, 0, 0, tau)
+
+      // for (let i = 1; i < 1000; i *= 1.2) {
+      //   console.log(i.toFixed(1), (i * 2 * Math.PI).toFixed(1))
+      // }
+
+      const n = 64
+      const a = Math.PI / n
+
+      d3.range(n).forEach(d => {
+        ctx.moveTo(200, 0)
+        ctx.ellipse(0, 0, 200, 100, 0, 0, tau)
+        ctx.rotate(a)
+      });
+
+      // ctx.ellipse(0, 0, 100, 100, 0, 1.1, 2.1)
+
+      // ctx.ellipse(0, 0, 100, 100, 0, 1.1, 2.1)
+      // ctx.ellipse(0, 0, 100, 150, 0.3, 0, Math.PI * 2)
+      // ctx.ellipse(0, 0, 150, 250, 0, 0, Math.PI * 2)
+      // ctx.ellipse(0, 0, 80, 120, 0, 2.2, tau)
+
+      // var n = 144
+
+      // ctx.transform(1, 0.4, 0.9, 1, 0, 0);
+
+      // ctx.scale(0.8)
+
+      // d3.range(n).forEach(d => {
+      //   ctx.rect(300, 0, 10, 10)
+      //   ctx.rotate(tau / n)
+      // })
+
+      // d3.range(n).forEach(d => {
+      //   ctx.rect(302.5, 2.5, 5, 5)
+      //   ctx.rotate(tau / n)
+      // })
+
+      // ctx.translate(-150, -50)
+
+      // ctx.rect(0, 0, 200, 200)
+      // ctx.rect(10, 10, 300, 400)
+
+      // ctx.scale(2)
+      // ctx.transform(1, 0.2, 0, 1, 0, 0);
+
+      // ctx.moveTo(0, 0);
+      // ctx.lineTo(75, 25);
+      // speech()
+      // ctx.translate(70, 20)
+      // ctx.moveTo(60, 50)
+      // ctx.arc(0, 0, 75, 1.2, 2.1)
+      // ctx.arc(0, 0, 100, 0, Math.PI)
+      // ctx.moveTo(0, 20)
+      // ctx.arc(0, 0, 50, Math.PI, 0, true)
+      // speech()
+      // ctx.translate(-30, 60)
+      // ctx.scale(1.2)
+      // speech()
+
+      function speech() {
+        ctx.moveTo(75, 25);
+        ctx.quadraticCurveTo(25, 25, 25, 62.5);
+        ctx.quadraticCurveTo(25, 100, 50, 100);
+        ctx.quadraticCurveTo(50, 120, 30, 125);
+        ctx.quadraticCurveTo(60, 120, 65, 100);
+        ctx.quadraticCurveTo(125, 100, 125, 62.5);
+        ctx.quadraticCurveTo(125, 25, 75, 25);
+      }
+
+      canvasCtx.stroke()
+      svgOut.attr('d', svgCtx.toString())
+      var tmpOut = decorateHpgl(hpglCtx)
+      hpglOut.node().value = tmpOut
+      hpglOutLines.text(tmpOut.split('\n').length)
+    }
+
+    function decorateHpgl(hpgl) {
+        return `IN;\nSP 1;\n${hpgl}PU;\nSP 0;\n`
+    }
+
+  </script>
+
+
+</body>
+
+</html>
