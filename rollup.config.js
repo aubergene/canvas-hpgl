@@ -1,6 +1,7 @@
 import buble from 'rollup-plugin-buble';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import { terser } from "rollup-plugin-terser";
 
 export default [{
   input: 'src/index.js',
@@ -9,7 +10,7 @@ export default [{
     buble()
   ],
   output: {
-    file: 'dist/index.es.js',
+    file: 'dist/canvas-hpgl.es.js',
     format: 'es',
     sourcemap: true
   }
@@ -22,8 +23,23 @@ export default [{
   ],
   output:
   {
-    file: 'dist/index.umd.js',
-    name: 'StraightLineCanvas',
+    file: 'dist/canvas-hpgl.umd.js',
+    name: 'CanvasHpgl',
+    format: 'umd',
+    sourcemap: true
+  }
+}, {
+  input: 'src/index.js',
+  plugins: [
+    buble(),
+    resolve(),
+    commonjs(),
+    terser()
+  ],
+  output:
+  {
+    file: 'dist/canvas-hpgl.umd.min.js',
+    name: 'CanvasHpgl',
     format: 'umd',
     sourcemap: true
   }

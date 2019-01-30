@@ -1,7 +1,7 @@
 {
   "name": "canvas-hpgl",
   "version": "1.0.0",
-  "description": "",
+  "description": "Canvas API for producing HPGL",
   "main": "dist/index.umd.js",
   "module": "src/index.js",
   "directories": {
@@ -12,19 +12,34 @@
     "pretest": "npm run build",
     "test": "mocha"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aubergene/canvas-hpgl.git"
+  },
+  "homepage": "https://github.com/aubergene/canvas-hpgl",
+  "bugs": {
+    "url": "https://github.com/aubergene/canvas-hpgl/issues"
+  },
+  "keywords": [
+    "HPGL",
+    "HP-GL",
+    "plotter",
+    "canvas",
+    "html canvas"
+  ],
+  "author": "Julian Burgess",
   "license": "ISC",
   "dependencies": {
+    "canvas-polyline": "^1.1.0",
+    "transformation-matrix": "^1.14.1"
+  },
+  "devDependencies": {
     "mocha": "^5.2.0",
     "rollup": "^0.65.0",
     "rollup-plugin-buble": "^0.19.2",
     "rollup-plugin-commonjs": "^9.1.6",
     "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-terser": "^4.0.3",
     "sinon": "^6.1.5"
-  },
-  "devDependencies": {
-    "canvas-polyline": "^1.1.0",
-    "transformation-matrix": "^1.14.1"
   }
 }
