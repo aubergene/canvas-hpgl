@@ -2,8 +2,8 @@
   "name": "canvas-hpgl",
   "version": "1.0.0",
   "description": "Canvas API for producing HPGL",
-  "main": "dist/index.umd.js",
-  "module": "src/index.js",
+  "main": "dist/canvas-hpgl.umd.js",
+  "module": "dist/canvas-hpgl.es.js",
   "directories": {
     "test": "test"
   },
