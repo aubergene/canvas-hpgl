@@ -14,6 +14,22 @@ ctx.rect(0, 0, 100, 100)
 // PD 0,0
 ```
 
+### penColors
+
+You can set which pen to use for a given color like this.
+
+```js
+var penColors = {
+    '#C00': 3,
+    '#0C0': 2,
+}
+var ctx = new CanvasHpgl(penColors) // Takes a single Canvas API contexts or an array of them
+ctx.strokeStyle('#C00') // SP 3;
+ctx.rect(0, 0, 100, 100)
+ctx.strokeStyle('#0C0') // SP 2;
+ctx.rect(200, 0, 100, 100)
+```
+
 # Backstory
 
 My initial motivation for creating this project was so I could use the HTML Canvas API with Roland DPX-3300 plotter. The plotter only understands [HPGL](https://en.wikipedia.org/wiki/HP-GL). I started by creating [d3-hpgl](https://github.com/aubergene/d3-hpgl), which translates Canvas commands in to the equivilient HPGL, however HPGL (at least version for my plotter) doesn't have native support for quadtractics, beziers or elipses. Additionally I wanted to have support for transformations, so I created this library.
