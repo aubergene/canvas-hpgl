@@ -97,15 +97,18 @@ export default class CanvasHpgl {
     params = params.join(" ");
     if (this._.length) {
       const prevCmd = this._[this._.length - 1];
-      if (prevCmd[0] === cmd) {
-        if (prevCmd[0] === "PU") {
-          // Replace previous move commands with the new one
-          // to remove long lists of pointless consecutive moves
-          this._.pop();
-        } else if (prevCmd[1] === params) {
-          // Don't draw to the same point more than once
-          return;
-        }
+
+      // Replace previous move commands with the new one
+      // to remove long lists of pointless consecutive moves
+      if (cmd === "PU" && prevCmd[0] === "PU") {
+        this._.pop();
+        this._.push([cmd, params]);
+        return;
+      }
+      
+      // Don't move/draw to the same point if we're already there
+      if (prevCmd[1] === params) {
+        return;
       }
     }
     this._.push([cmd, params]);

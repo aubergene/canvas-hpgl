@@ -57,6 +57,14 @@ describe("Hpgl", function() {
     assert.equal(p.toString(), "PD 150 -50;\n");
   });
 
+  it("hpgl.moveTo(x, y) ignores a PU command if we're already at that same", function() {
+    var p = new CanvasHpgl();
+    p.lineTo(150, 50);
+    assert.equal(p.toString(), "PD 150 -50;\n");
+    p.moveTo(150, 50);
+    assert.equal(p.toString(), "PD 150 -50;\n");
+  });
+
   it("hpgl.lineTo(x, y) appends PD commands", function() {
     var p = new CanvasHpgl();
     p.lineTo(150, 50);
