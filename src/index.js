@@ -31,6 +31,13 @@ export default class CanvasHpgl {
     return this._strokeStyle;
   }
 
+  stroke() {
+    // just for API compatability
+  }
+  strokeRect() {
+    // just for API compatability
+  }
+
   rotate(a, cx, cy) {
     this._matrix = compose(
       this._matrix,
