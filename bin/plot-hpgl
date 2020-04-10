@@ -1,0 +1,67 @@
+#!/usr/bin/env node
+const fs = require('fs');
+const SerialPort = require('serialport');
+const Readline = SerialPort.parsers.Readline;
+const CliProgress = require('cli-progress');
+
+// The number of commands sent at once
+// also the increment size of the progress
+const tty = '/dev/tty.usbserial-DN03VY8H'
+const options = {
+  xon: true,
+  xoff: true
+}
+
+const port = new SerialPort(tty, options, handleErrors);
+port.setEncoding('ascii')
+
+const parser = port.pipe(new Readline({ delimiter: '\r' }));
+
+const inFile = process.argv[2]
+
+console.log(`Plotting ${inFile}`)
+
+const hpgl = fs.readFileSync(inFile, 'ascii')
+const hpglCmds = hpgl.split(';')
+const hpglCmdsLn = hpglCmds.length
+
+const cmdBatchSize = hpglCmdsLn < 100 ? 1 : 10
+
+console.log(`HPGL ${hpgl.length} bytes, ${hpglCmds.length} commands, batch size ${cmdBatchSize}`)
+
+const bar = new CliProgress.Bar({
+  format: 'Plotting {duration_formatted} [{bar}] {percentage}% | ETA: {eta_formatted} | {value}/{total}'
+});
+
+bar.start(hpglCmdsLn, 0)
+
+let index = 0
+
+parser.on('data', sendCmds)
+sendCmds()
+
+function sendCmds () {
+  if (index >= hpglCmdsLn) {
+    bar.update(hpglCmdsLn)
+    bar.stop()
+    port.close()
+    return
+  }
+
+  if (index) bar.increment(cmdBatchSize)
+
+  // Send an `OA` command to get current plotter header position
+  // followed by cmdBatchSize commands
+  // When we recieve the `OA` data we send the next set
+  // hopefully this way we keep some commands in the plotter's buffer
+  port.write('OA', handleErrors)
+  let i = 0
+  while (i++ < cmdBatchSize && index < hpglCmdsLn) {
+    // console.log(hpglCmds[index])
+    port.write(hpglCmds[index++], handleErrors)
+  }
+}
+
+function handleErrors (err) {
+    if (err) console.error(err)
+}
