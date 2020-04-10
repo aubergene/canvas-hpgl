@@ -7,6 +7,9 @@
   "directories": {
     "test": "test"
   },
+  "bin": {
+    "plot-hpgl": "./bin/plot-hpgl"
+  },
   "scripts": {
     "build": "rollup -c",
     "pretest": "npm run build",
@@ -30,7 +33,9 @@
   "author": "Julian Burgess",
   "license": "ISC",
   "dependencies": {
-    "canvas-polyline": "^1.1.0",
+    "canvas-polyline": "^1.2.3",
+    "cli-progress": "^2.1.1",
+    "serialport": "^7.1.5",
     "transformation-matrix": "^1.14.1"
   },
   "devDependencies": {
