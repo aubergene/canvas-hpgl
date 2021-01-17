@@ -33,17 +33,18 @@
   "author": "Julian Burgess",
   "license": "ISC",
   "dependencies": {
-    "canvas-polyline": "^1.2.3",
-    "cli-progress": "^2.1.1",
-    "serialport": "^7.1.5",
-    "transformation-matrix": "^1.14.1"
+    "canvas-polyline": "^1.2.5",
+    "cli-progress": "^3.8.2",
+    "serialport": "^9.0.4",
+    "transformation-matrix": "^2.6.0"
   },
   "devDependencies": {
-    "mocha": "^5.2.0",
-    "rollup": "^1.1.2",
-    "rollup-plugin-buble": "^0.19.6",
-    "rollup-plugin-commonjs": "^9.2.0",
-    "rollup-plugin-node-resolve": "^4.0.0",
-    "rollup-plugin-terser": "^4.0.3"
+    "@rollup/plugin-buble": "^0.21.3",
+    "@rollup/plugin-commonjs": "^17.0.0",
+    "@rollup/plugin-node-resolve": "^11.1.0",
+    "acorn": "^8.0.4",
+    "mocha": "^8.2.1",
+    "rollup": "^2.36.2",
+    "rollup-plugin-terser": "^7.0.2"
   }
 }
